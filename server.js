@@ -3,12 +3,27 @@ require('dotenv').config();
 const express     = require('express');
 const bodyParser  = require('body-parser');
 const cors        = require('cors');
+const helmet      = require('helmet');
 
 const apiRoutes         = require('./routes/api.js');
 const fccTestingRoutes  = require('./routes/fcctesting.js');
 const runner            = require('./test-runner');
 
 const app = express();
+app.use(helmet({
+  frameguard: {         // configure
+    action: 'deny'
+  },
+  contentSecurityPolicy: {    // enable and configure
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc:["'self'"],
+      styleSrc: ["'self'"],
+    }
+  },
+  dnsPrefetchControl:{allow: false},
+  referrerPolicy:{policy:["origin"]}
+}));
 
 app.use('/public', express.static(process.cwd() + '/public'));
 
