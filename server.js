@@ -11,18 +11,21 @@ const runner            = require('./test-runner');
 
 const app = express();
 app.use(helmet({
-  frameguard: {         // configure
-    action: 'deny'
+  frameguard: {
+    action: 'sameorigin'
   },
-  contentSecurityPolicy: {    // enable and configure
+  contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc:["'self'"],
-      styleSrc: ["'self'"],
+      defaultSrc: ["'self'",'https://cdn.freecodecamp.org'],
+      scriptSrc:["'self'","'sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00='",
+        "'sha256-ib4lFC28v5FzLoBNALLdYEkn/kJIVLlIrCMotPLCeyw='",
+        "'sha256-gXMtMpON3A5aw4ZZMovX0nGHc6EqpyXJ8foaOOENtDs='",
+        "'sha256-Zel/R1cOUDWeomhnRLeWGPfTLXtyqK1YwSKQYXPzahE='"],
+      styleSrc: ["'self'","'unsafe-inline'"],
     }
   },
   dnsPrefetchControl:{allow: false},
-  referrerPolicy:{policy:["origin"]}
+  referrerPolicy:{policy:["same-origin"]}
 }));
 
 app.use('/public', express.static(process.cwd() + '/public'));

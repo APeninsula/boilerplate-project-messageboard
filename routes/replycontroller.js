@@ -1,43 +1,52 @@
 'use strict';
 
-const generateEmptyReply = require('../shared/shared')
-// Should make some Controllers and handlers
-// Do we make a database for the board and threads?
-// Use JSON stringify() to pass the thread and board data
-// Board Data structure: Map of Boards, Each key has a value of a thread object, each thread object has an array of reply objects
-// const threadTemplate = {
-//   _id:"randomlygennedId",
-//   created_on:"Date Timestamp with Hours and Minutes",
-//   text:"text of post",
-//   bumped_on:"Date Timestamp that gets updated from last update",
-//   reported:"boolean",
-//   delete_password:"password to delete post",
-//   replies:["array of reply objects"]
-// }
-// const replyTemplate = {
-//   text:"text of post",
-//   delete_password:"password to delete post",
-//   created_on:"Date Timestamp with Hours and Minutes",
-//   reported:"boolean",
-//   _id:"randomlygennedId",
-// }
+const shared = require('../shared/shared');
+const BoardData = require('../shared/boarddata');
+const SingletonBoardData = new BoardData();
 
-export const postReply = async function(req,res,next){
-    res.send(new Promise("NOT YET IMPLEMENTED - create a new reply to a thread on the anonymous forum."));
+const postReply = async function(req,res,next){
+    const board = !!(req.body.board) ? req.body.board : req.params.board;
+    const reply = shared.generateEmptyThread();
+    reply.text = req.body.text;
+    reply.delete_password = req.body.delete_password;
+    const updatedThread = SingletonBoardData.addReplyToThread(board,req.body.thread_id,reply)
+    if(!updatedThread){
+        res.status(500).send("Error posting reply");
+        res.end();
+        return;
+    }
+    res.redirect(`/b/${board}/${req.body.thread_id}`);
     next();
 };
 
-export const getThreadContents = async function(req,res,next){
-    res.send(Promise("NOT YET IMPLEMENTED - return the entirety of the thread's contents from the requested thread's id."));
+const getThreadContents = async function(req,res,next){
+    const board = !!(req.query.board) ? req.query.board : req.params.board;
+    const thread = SingletonBoardData.getThreadFromBoard(board,req.query.thread_id);
+    const reducedThread = SingletonBoardData.reduceThreadForMessage(thread);
+    res.send(reducedThread);
     next();
 };
 
-export const deleteReplyContents = async function(req,res,next){
-    res.send(Promise("NOT YET IMPLEMENTED - Should return a message 'incorrect password' or 'success'. Text of the reply's id should change to 'deleted'"));
+const deleteReplyContents = async function(req,res,next){
+    const board = !!(req.body.board) ? req.body.board : req.params.board;
+    const isDeleteSuccess = SingletonBoardData.deleteReplyFromThread
+        (board,req.body.thread_id,req.body.reply_id, req.body.delete_password);
+    const message = isDeleteSuccess ? "success" : "incorrect password";
+    res.send(message);
     next();
 };
 
-export const putReportReply = async function(req,res,next){
-    res.send(Promise("NOT YET IMPLEMENTED - return 'reported' and update the reported value of the reply to true"));
+const putReportReply = async function(req,res,next){
+    const board = !!(req.body.board) ? req.body.board : req.params.board;
+    const didReportReply= SingletonBoardData.reportThread(board,req.body.thread_id, req.body.reply_id);
+    if(!didReportReply){
+        console.error("An issue occured while attempting to report the thread.");
+        res.status(500).send("Error: Unable to report the thread");
+        res.end();
+        return;
+    }
+    res.send("reported");
     next();
 };
+
+module.exports = {postReply, getThreadContents, deleteReplyContents, putReportReply};

@@ -1,6 +1,4 @@
-// Random ID generator
-// base Board Generator
-// Make a singleton instance of the Board Map initiator, make sure that you can only have one Board Data instance by altering its constructor
+'use strict';
 
 const generateRandomId = function(){
     var retVal = ""
@@ -9,21 +7,21 @@ const generateRandomId = function(){
     return retVal;
 };
 
-export const generateEmptyThread = function(){
-    const timestamp = new Date().toString();
+const generateEmptyThread = function(){
+    const timestamp = new Date().toISOString();
     return {
         _id: generateRandomId(),
-        created_on:timestamp, //"Date Timestamp with Hours and Minutes"
-        text:"", // text of post
-        bumped_on:timestamp, // "Date Timestamp that gets updated from last update"
+        created_on:timestamp,
+        text:"", 
+        bumped_on:timestamp, 
         reported: false,
-        delete_password:"", //password to delete post
-        replies:[] //"array of reply objects"
+        delete_password:"", 
+        replies:new Map() 
     };
 };
 
-export const generateEmptyReply = function(){
-    const timestamp = new Date().toString();
+const generateEmptyReply = function(){
+    const timestamp = new Date().toISOString();
     return {
         _id: generateRandomId(),
         text:"",
@@ -32,3 +30,4 @@ export const generateEmptyReply = function(){
         reported:false,
     }
 };
+module.exports = {generateEmptyReply, generateEmptyThread};
